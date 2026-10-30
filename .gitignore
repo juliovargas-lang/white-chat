@@ -11,9 +11,6 @@ node_modules/
 supabase/.temp/
 supabase/.branches/
 
-# Netlify
-.netlify/
-
 # OS / editors
 .DS_Store
 .vscode/

@@ -99,7 +99,7 @@ try {
   await adm.click('[data-filter=closed]');
   check('A2 closed filter lists the conversation', await listHas(adm, name));
   await adm.evaluate((n) => [...document.querySelectorAll('.conv-item')].find((li) => li.textContent.includes(n)).click(), name);
-  await waitFor(adm, () => !document.getElementById('btn-delete').hidden);
+  await waitFor(adm, () => !document.getElementById('chat').hidden && !document.getElementById('btn-delete').hidden);
   await adm.click('#btn-delete');
   check('A7 admin can delete conversation', await waitFor(adm, (n) =>
     ![...document.querySelectorAll('.conv-item')].some((li) => li.textContent.includes(n)), { args: [name] }));

@@ -19,10 +19,14 @@
   <pre>&lt;script src="/widget/chat-widget.js"
         data-supabase-url="..." data-supabase-key="..." defer&gt;&lt;/script&gt;</pre>
 
-  <!-- Local Supabase stack (npx supabase start). Replace URL/key in phase 6. -->
-  <script src="/widget/chat-widget.js"
-          data-supabase-url="http://127.0.0.1:54321"
-          data-supabase-key="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
-          defer></script>
+  <!-- Same embed as the snippet above, with URL/key taken from config.js (single place to change). -->
+  <script src="config.js"></script>
+  <script>
+    const s = document.createElement('script');
+    s.src = 'widget/chat-widget.js';
+    s.dataset.supabaseUrl = window.WHITE_CHAT_CONFIG.SUPABASE_URL;
+    s.dataset.supabaseKey = window.WHITE_CHAT_CONFIG.SUPABASE_ANON_KEY;
+    document.body.append(s);
+  </script>
 </body>
 </html>

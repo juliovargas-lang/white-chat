@@ -8,7 +8,7 @@ Specs, plan and progress: [`dev-plans/mvp/`](dev-plans/mvp/) (`SPEC.md`, `PLAN.m
 
 ```
 supabase/migrations/   SQL migrations (schema, RLS, storage)
-web/                   static site published by Netlify
+web/                   static site published to GitHub Pages (gh-pages branch)
   config.js            public Supabase URL + anon key
   demo.html            test page embedding the widget
   widget/              chat-widget.js
@@ -19,18 +19,26 @@ web/                   static site published by Netlify
 
 1. Start local Supabase (Docker), which applies the migrations:
    `npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta`
-   (`web/config.js` already points to the local stack; keys via `npx supabase status`).
+   (`web/config.js` uses the local stack on localhost and production elsewhere; keys via `npx supabase status`).
 2. Security smoke test: `SUPABASE_URL=http://127.0.0.1:54321 ANON_KEY=... SERVICE_ROLE_KEY=... node supabase/tests/rls_smoke.mjs`
 3. Serve the static site: `python3 -m http.server -d web 8787`
    - Admin: http://localhost:8787/admin/
    - Widget demo: http://localhost:8787/demo.html
 4. E2E (headless Chrome): `cd tests/e2e && npm install && cd ../..` then
-   `node tests/e2e/widget.mjs` (also `admin.mjs`, `settings.mjs`; local stack keys by default)
+   `node tests/e2e/widget.mjs` (also `admin.mjs`, `settings.mjs`, `attachments.mjs`; local stack keys by default)
+
+## Production
+
+- Site: https://juliovargas-lang.github.io/white-chat/ (admin: `/admin/`, demo: `/demo.html`)
+- Supabase project ref: `bopowpecmfdgqwlxrccf` (us-east-1)
+- Deploy the site: `scripts/deploy-pages.sh` (publishes `web/` to the `gh-pages` branch)
+- Deploy DB changes: `npx supabase db push` (project already linked)
+- Add staff: create the user in Supabase → Authentication → Users, then *Settings → Grant access* in the admin panel.
 
 ## Embed
 
 ```html
-<script src="https://<your-site>.netlify.app/widget/chat-widget.js"
-        data-supabase-url="https://xxx.supabase.co"
-        data-supabase-key="ANON_KEY" defer></script>
+<script src="https://juliovargas-lang.github.io/white-chat/widget/chat-widget.js"
+        data-supabase-url="https://bopowpecmfdgqwlxrccf.supabase.co"
+        data-supabase-key="<ANON_KEY from web/config.js>" defer></script>
 ```

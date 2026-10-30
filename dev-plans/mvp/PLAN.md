@@ -26,7 +26,7 @@ Navegador staff ─────(anon key + sesión email)─────┘
 - **Idioma y textos**: UI en inglés. Widget: objeto `TEXT` al inicio de `chat-widget.js`. Admin: `web/admin/js/text.js` exporta `TEXT` y un helper que rellena los elementos con `data-text="clave"`. Sin logos: la marca es el texto `chat_name`.
 - **Frontend**: JS vanilla sin build. supabase-js por ESM desde jsDelivr (`https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm`).
 - **Widget**: script clásico que hace `import()` dinámico de supabase-js, UI en **Shadow DOM** y `storageKey: 'wc-auth'` para no chocar con un supabase-js del sitio anfitrión.
-- **Hosting**: Netlify publica `web/` (admin + widget + demo).
+- **Hosting**: GitHub Pages publica `web/` (admin + widget + demo) desde la rama `gh-pages` (`scripts/deploy-pages.sh`). Originalmente era Netlify; se cambió en la fase 6.
 - **Supabase**: en desarrollo se usa local con Docker (`npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta`), que aplica las migraciones solo. El proyecto remoto se crea en la fase 6 (`npx supabase link` + `npx supabase db push`).
 
 ## Estructura del repo
@@ -41,7 +41,7 @@ Navegador staff ─────(anon key + sesión email)─────┘
 │       ├── 0002_rls.sql
 │       ├── 0003_storage.sql
 │       └── 0004_profile_email.sql   # añadido en la fase 4
-├── web/                     # publish dir de Netlify
+├── web/                     # se publica en GitHub Pages
 │   ├── config.js            # SUPABASE_URL + ANON_KEY (públicas)
 │   ├── demo.html            # página de prueba que embebe el widget
 │   ├── widget/chat-widget.js
@@ -52,7 +52,7 @@ Navegador staff ─────(anon key + sesión email)─────┘
 │       ├── css/styles.css
 │       └── js/{text.js, supabase.js, auth.js, conversations.js, admin.js}
 ├── tests/e2e/               # puppeteer-core: widget.mjs, admin.mjs
-├── netlify.toml
+├── scripts/deploy-pages.sh  # publica web/ en gh-pages
 ├── .gitignore
 └── README.md
 ```
@@ -368,14 +368,14 @@ with check (
 ---
 
 ## Fase 6 — Deploy y prueba final
-**Cubre**: todo · **Commit**: `chore(fase-6): deploy en Netlify y checklist E2E` + tag `v0.1.0`
+**Cubre**: todo · **Commit**: `chore(fase-6): deploy en GitHub Pages y Supabase remoto` + tag `v0.1.0`
 
 - [ ] Crear el proyecto Supabase remoto → `npx supabase login` → `npx supabase link --project-ref <ref>` → `npx supabase db push`.
 - [ ] Aplicar la configuración del Dashboard de la sección 1.4 (anonymous sign-ins, primer admin).
-- [ ] Poner la URL y la anon key remotas en `web/config.js` y en el snippet de `web/demo.html`.
-- [ ] Subir el repo a GitHub y conectarlo a Netlify (o `netlify deploy --prod --dir web`).
-- [ ] Supabase Auth → URL Configuration: Site URL = dominio de Netlify.
-- [ ] README: snippet final de embed con la URL de Netlify (`https://<sitio>.netlify.app/widget/chat-widget.js`).
+- [ ] Poner la URL y la anon key remotas en `web/config.js` (lo usan el admin y `demo.html`).
+- [ ] Subir el repo a GitHub y publicar `web/` en GitHub Pages (rama `gh-pages`, `scripts/deploy-pages.sh`). Rutas relativas porque el sitio vive bajo `/<repo>/`.
+- [ ] Supabase Auth → URL Configuration: Site URL = URL de GitHub Pages.
+- [ ] README: snippet final de embed con la URL de GitHub Pages.
 - [ ] Revisar que no quede texto en español en la UI (widget y admin).
 - [ ] Repetir en producción la verificación E2E de la fase 3, más W5, W8 y S1.
 

@@ -3,7 +3,7 @@
 > Se actualiza al empezar y al cerrar cada fase, dentro del mismo commit de la fase.
 > Estados: ⬜ pendiente · 🟡 en curso · ✅ hecha · ✂️ recortada
 
-**Fase actual**: Fase 6 — Deploy y prueba final (requiere al usuario: proyecto Supabase + Netlify)
+**Fase actual**: MVP completo (`v0.1.0`) — todas las fases cerradas
 **Última actualización**: 2026-10-30
 
 ## Fases
@@ -16,7 +16,7 @@
 | 3 | Admin: login y conversaciones | P0 | ✅ | `feat(fase-3)` |
 | 4 | Admin: marca blanca (P0) y staff (P1) | P0/P1 | ✅ | `feat(fase-4)` |
 | 5 | Adjuntos | P1 | ✅ | `feat(fase-5)` |
-| 6 | Deploy y prueba final | P0 | ⬜ | — |
+| 6 | Deploy y prueba final | P0 | ✅ | `chore(fase-6)` + tag `v0.1.0` |
 
 ## Cobertura del SPEC
 
@@ -29,21 +29,22 @@
 | A10 | 5 | ✅ (E2E) |
 | S1–S5 | 1–3 | ✅ API (fase 1) + UI/Realtime (fases 2–3) |
 | S6 | 5 | ✅ API (fase 1) + UI (fase 5) |
-| S7 | todas | ⬜ |
+| S7 | todas | ✅ solo la anon key en el repo; secretos en `~/.white-chat-deploy.env` |
 
 ## Decisiones
 
 - 2026-10-30 — Se reemplaza el plan v0 por SPEC/PLAN/STATUS (SDD). Se recortan: Edge Function, operadores restringidos, tabla `visitors`, edición de datos del visitante, barra de progreso y subida de logo. Ver `SPEC.md` §5.
 - 2026-10-30 — El visitante se identifica con Supabase Anonymous Sign-In (en lugar de "conocer el UUID"), para que RLS y Realtime filtren de verdad.
-- 2026-10-30 — Widget y admin se sirven desde Netlify (sin jsDelivr).
+- 2026-10-30 — Widget y admin se sirven desde Netlify (sin jsDelivr). **Reemplazado en la fase 6 por GitHub Pages** (pedido del usuario: solo GitHub).
 - 2026-10-30 — Sin logos: la marca es solo texto (`chat_name`) y colores. Se elimina `widget_settings.logo_url`.
 - 2026-10-30 — Desarrollo contra Supabase local (Docker); el proyecto remoto se crea en la fase 6. Así no hay bloqueos hasta el deploy.
 - 2026-10-30 — Se agrega `profiles.email` (migración 0004, completada por `add_staff`) para distinguir al staff en la tabla. Fuera del plan original, pero el costo es mínimo.
+- 2026-10-30 — No se puede desactivar "Allow new users to sign up": en Supabase eso también bloquea los sign-ins anónimos (probado). Queda activo; un signup sin `profiles` no tiene acceso (A1, smoke test).
 - 2026-10-30 — UI en inglés con los textos centralizados (`TEXT` en el widget, `web/admin/js/text.js` en el admin). El rol `operador` pasa a `operator` en el enum.
 
 ## Bloqueos / pendientes
 
-- **[usuario, fase 6]** Crear el proyecto Supabase remoto y hacer login en la CLI (`npx supabase login`). No bloquea las fases 2–5.
+- (ninguno)
 
 ## Notas por fase
 
@@ -90,3 +91,16 @@
 - **Seguridad**: `attachment_url` la escribe el cliente → solo se muestran URLs que empiezan con `<SUPABASE_URL>/storage/v1/object/public/chat-attachments/` (evita `javascript:` y enlaces a dominios externos).
 - `tests/e2e/attachments.mjs`: 7 comprobaciones (W8, A10, URL forjada) → ALL PASSED. Regresión completa (widget, admin, settings, rls_smoke) ✅.
 - Bug corregido: el botón de enviar del admin se buscaba con `querySelector('button')`, que ahora devolvía el de adjuntar.
+
+### Fase 6 — ✅
+- Supabase `white-chat` (ref `bopowpecmfdgqwlxrccf`, us-east-1) creado por la Management API. Migraciones 0001–0004 aplicadas con `db push`. Auth: anonymous sign-ins ON, site URL = GitHub Pages.
+- Primer admin: `juliovargas@investingtoday.org` (Julio Vargas, admin).
+- Sitio en GitHub Pages: https://juliovargas-lang.github.io/white-chat/ (rama `gh-pages`, publicada con `scripts/deploy-pages.sh`). `web/config.js` elige el Supabase local o el de producción según el hostname.
+- Verificación en producción: `rls_smoke.mjs` 29/29 y E2E widget 15/15, admin 19/19, settings 14/14, attachments 7/7. Después se borraron los datos de prueba (usuarios de test, anónimos, conversaciones y archivos).
+- Secretos (tokens, contraseña de la BD, service key) solo en `~/.white-chat-deploy.env` (chmod 600), fuera del repo.
+- Tests: `admin.mjs` esperaba el botón Delete en vez del chat visible y fallaba con la latencia real; corregido. `widget.mjs` falló 1 de 5 veces en local (timing de Realtime); no se reprodujo.
+
+## Siguientes pasos sugeridos (fuera del MVP)
+- Pantalla para que el staff cambie su contraseña (hoy solo desde el Dashboard de Supabase).
+- Captcha en el formulario del widget si aparece spam (Supabase Auth soporta hCaptcha/Turnstile para sign-ins anónimos).
+- Revisar los límites de Storage del free tier (1GB) antes de tener tráfico real.

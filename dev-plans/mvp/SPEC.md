@@ -67,7 +67,7 @@ Prioridad: **funcional y rápido**. P0 = imprescindible. P1 = se recorta si hay 
 - Logos (ni en el widget ni en el admin; la marca es solo texto).
 - Multi-idioma: la UI es solo en inglés, pero los textos están centralizados por si luego se traducen.
 - Barra de progreso de subida, notificaciones o sonido, contador de no leídos, "escribiendo…", paginación y captcha.
-- CDN jsDelivr: widget y admin se sirven desde el mismo deploy de Netlify.
+- CDN jsDelivr y Netlify: widget y admin se sirven desde GitHub Pages (rama `gh-pages`).
 
 ## 6. Limitaciones aceptadas
 
