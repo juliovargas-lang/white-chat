@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strict CSP host — iframe embed</title>
+  <!-- Simulates a locked-down site: connect-src blocks Supabase; frame-src allows the widget origin. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; frame-src 'self' http://localhost:8787; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline';">
+</head>
+<body>
+  <h1>Strict CSP host page</h1>
+  <p>This page's CSP blocks direct connections to Supabase. The chat works because it runs inside the iframe.</p>
+  <script src="/widget/embed.js" data-frame="http://localhost:8787/widget/frame.html"></script>
+</body>
+</html>

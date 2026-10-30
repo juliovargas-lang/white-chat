@@ -35,6 +35,26 @@ web/                   static site published to GitHub Pages (gh-pages branch)
 - Deploy DB changes: `npx supabase db push` (project already linked)
 - Add staff: create the user in Supabase → Authentication → Users, then *Settings → Grant access* in the admin panel.
 
+## Embed the widget
+
+Direct embed (no CSP, or Supabase origins allowlisted in the host CSP):
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/juliovargas-lang/white-chat@<commit>/web/widget/chat-widget.js"
+        data-supabase-url="https://bopowpecmfdgqwlxrccf.supabase.co"
+        data-supabase-key="<anon key from web/config.js>" defer></script>
+```
+
+iframe embed (for sites with a strict Content Security Policy). The chat runs inside an
+iframe on GitHub Pages, so the host page only needs `frame-src` to allow
+`https://juliovargas-lang.github.io` — no `connect-src`/`img-src` change:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/juliovargas-lang/white-chat@<commit>/web/widget/embed.js" defer></script>
+```
+
+Both are tested end to end in `tests/e2e/` (`widget.mjs`, `iframe.mjs`).
+
 ## Embed
 
 ```html

@@ -175,10 +175,23 @@
 
     root.append(el('style', { text: CSS }), ui.panel, bubble);
     document.body.append(host);
+    emitState();
+  }
+
+  // When embedded through an <iframe> (embed.js), tell the parent whether the
+  // panel is open so it can resize the iframe. No-op on a direct embed.
+  const framed = window.parent && window.parent !== window;
+  function emitState() {
+    if (!framed) return;
+    try {
+      window.parent.postMessage(
+        { source: 'white-chat', type: 'state', open: !!(ui.panel && !ui.panel.hidden) }, '*');
+    } catch (e) { /* ignore */ }
   }
 
   function togglePanel() {
     ui.panel.toggleAttribute('hidden');
+    emitState();
     if (!ui.panel.hidden) scrollToBottom();
   }
 

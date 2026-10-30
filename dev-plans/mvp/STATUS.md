@@ -104,3 +104,10 @@
 - Pantalla para que el staff cambie su contraseña (hoy solo desde el Dashboard de Supabase).
 - Captcha en el formulario del widget si aparece spam (Supabase Auth soporta hCaptcha/Turnstile para sign-ins anónimos).
 - Revisar los límites de Storage del free tier (1GB) antes de tener tráfico real.
+
+### Post-v0.1.0 — embed por iframe (CSP estricta)
+- El sitio del usuario tiene una CSP muy cerrada (`connect-src` sin Supabase) que no se puede editar por ahora. Un script inyectado no puede aflojar la CSP del documento, así que el embed directo no conecta.
+- Solución: `web/widget/embed.js` crea un `<iframe>` → `web/widget/frame.html` en GitHub Pages. El chat (y todas sus llamadas a Supabase) corre dentro del iframe, bajo la CSP de GitHub Pages (ninguna). El sitio host solo necesita `frame-src` que permita `https://juliovargas-lang.github.io` (confirmado por el usuario); no hace falta tocar `connect-src` ni `img-src`.
+- `chat-widget.js` ahora avisa al padre (postMessage `{source:'white-chat',type:'state',open}`) para que `embed.js` redimensione el iframe. Es no-op en el embed directo.
+- `tests/e2e/iframe.mjs` + `web/demo-csp.html`: 7/7 con una CSP host que bloquea Supabase → el chat arranca igual por el iframe, sin violaciones de CSP en el host. El embed directo sigue 15/15.
+- `embed.js` se carga desde jsDelivr (el `script-src` del host ya lo permite) y apunta el iframe a GitHub Pages (`frame-src`). Override posible con `data-frame`.
