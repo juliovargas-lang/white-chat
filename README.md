@@ -17,8 +17,10 @@ web/                   static site published by Netlify
 
 ## Local development
 
-1. Fill in `web/config.js` with your Supabase project URL and anon key.
-2. Apply migrations: `npx supabase link --project-ref <ref>` then `npx supabase db push`.
+1. Start local Supabase (Docker), which applies the migrations:
+   `npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta`
+   (`web/config.js` already points to the local stack; keys via `npx supabase status`).
+2. Security smoke test: `SUPABASE_URL=http://127.0.0.1:54321 ANON_KEY=... SERVICE_ROLE_KEY=... node supabase/tests/rls_smoke.mjs`
 3. Serve the static site: `python3 -m http.server -d web 8080`
    - Admin: http://localhost:8080/admin/
    - Widget demo: http://localhost:8080/demo.html

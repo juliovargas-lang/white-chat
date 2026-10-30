@@ -3,7 +3,7 @@
 > Se actualiza al empezar y al cerrar cada fase, dentro del mismo commit de la fase.
 > Estados: ⬜ pendiente · 🟡 en curso · ✅ hecha · ✂️ recortada
 
-**Fase actual**: Fase 1 — Base de datos, RLS y Storage (bloqueada: falta crear/enlazar el proyecto Supabase)
+**Fase actual**: Fase 2 — Widget núcleo
 **Última actualización**: 2026-10-30
 
 ## Fases
@@ -11,7 +11,7 @@
 | Fase | Descripción | Prioridad | Estado | Commit |
 |---|---|---|---|---|
 | 0 | Setup del repo y docs SDD | P0 | ✅ | `chore(fase-0)` |
-| 1 | Base de datos, RLS y Storage | P0 | ⬜ | — |
+| 1 | Base de datos, RLS y Storage | P0 | ✅ | `feat(fase-1)` |
 | 2 | Widget núcleo | P0 | ⬜ | — |
 | 3 | Admin: login y conversaciones | P0 | ⬜ | — |
 | 4 | Admin: marca blanca (P0) y staff (P1) | P0/P1 | ⬜ | — |
@@ -27,8 +27,8 @@
 | A1–A7, A11 | 3 | ⬜ |
 | A8, A9 | 4 | ⬜ |
 | A10 | 5 | ⬜ |
-| S1–S5 | 1–3 | ⬜ |
-| S6 | 5 | ⬜ |
+| S1–S5 | 1–3 | 🟡 API ✅ (fase 1), falta UI/Realtime |
+| S6 | 5 | 🟡 API ✅ (fase 1), falta UI |
 | S7 | todas | ⬜ |
 
 ## Decisiones
@@ -37,11 +37,12 @@
 - 2026-10-30 — El visitante se identifica con Supabase Anonymous Sign-In (en lugar de "conocer el UUID"), para que RLS y Realtime filtren de verdad.
 - 2026-10-30 — Widget y admin se sirven desde Netlify (sin jsDelivr).
 - 2026-10-30 — Sin logos: la marca es solo texto (`chat_name`) y colores. Se elimina `widget_settings.logo_url`.
+- 2026-10-30 — Desarrollo contra Supabase local (Docker); el proyecto remoto se crea en la fase 6. Así no hay bloqueos hasta el deploy.
 - 2026-10-30 — UI en inglés con los textos centralizados (`TEXT` en el widget, `web/admin/js/text.js` en el admin). El rol `operador` pasa a `operator` en el enum.
 
 ## Bloqueos / pendientes
 
-- **[usuario]** Crear el proyecto en Supabase y enlazarlo: `npx supabase login` → `npx supabase link --project-ref <ref>`. Pasar la URL y la anon key para completar `web/config.js`. Bloquea el cierre de la fase 1.
+- **[usuario, fase 6]** Crear el proyecto Supabase remoto y hacer login en la CLI (`npx supabase login`). No bloquea las fases 2–5.
 
 ## Notas por fase
 
@@ -51,4 +52,11 @@
 - Repo git (`main`), `.gitignore`, `README.md`, `netlify.toml` (publish `web/`), estructura `web/` y `supabase/`.
 - `npx supabase init` (no hay Supabase CLI global; se usa vía `npx`). En `config.toml`, `enable_anonymous_sign_ins = true`.
 - `web/config.js` con placeholders: rellenar con la URL y la anon key del proyecto.
-- Pendiente movido a la fase 1: crear el proyecto Supabase y hacer `link` (requiere login del usuario).
+- Pendiente: crear el proyecto Supabase remoto (movido a la fase 6).
+
+### Fase 1 — ✅
+- Migraciones `0001_schema.sql`, `0002_rls.sql` y `0003_storage.sql` (copiadas del PLAN sin cambios). Se aplican limpias en el Supabase local.
+- `supabase/tests/rls_smoke.mjs`: 29 comprobaciones de API (S1–S6, W2, W5, A1, A6–A9) → ALL PASSED. Tarda ~25 s porque espera a que pase la ventana del rate limit. Usa la service key: **solo local**.
+- `web/config.js` apunta al Supabase local (URL y anon key de demo, que son públicas). Se cambia en la fase 6.
+- Para levantar: `npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta`; las keys salen con `npx supabase status`.
+- Realtime no está probado todavía (se prueba con la UI en las fases 2–3).

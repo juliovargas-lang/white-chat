@@ -1,6 +1,7 @@
 // Public Supabase config used by the admin panel.
 // The anon key is public by design; never put the service_role key here.
+// Currently points to the local Supabase stack (`npx supabase start`); replaced in phase 6.
 window.WHITE_CHAT_CONFIG = {
-  SUPABASE_URL: 'https://YOUR-PROJECT.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR-ANON-KEY',
+  SUPABASE_URL: 'http://127.0.0.1:54321',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0',
 };

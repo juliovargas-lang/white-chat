@@ -26,7 +26,8 @@ Navegador staff ─────(anon key + sesión email)─────┘
 - **Idioma y textos**: UI en inglés. Widget: objeto `TEXT` al inicio de `chat-widget.js`. Admin: `web/admin/js/text.js` exporta `TEXT` y un helper que rellena los elementos con `data-text="clave"`. Sin logos: la marca es el texto `chat_name`.
 - **Frontend**: JS vanilla sin build. supabase-js por ESM desde jsDelivr (`https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm`).
 - **Widget**: script clásico que hace `import()` dinámico de supabase-js, UI en **Shadow DOM** y `storageKey: 'wc-auth'` para no chocar con un supabase-js del sitio anfitrión.
-- **Hosting**: Netlify publica `web/` (admin + widget + demo). Supabase remoto (sin Docker): las migraciones se aplican con `supabase db push` o pegándolas en el SQL Editor.
+- **Hosting**: Netlify publica `web/` (admin + widget + demo).
+- **Supabase**: en desarrollo se usa local con Docker (`npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta`), que aplica las migraciones solo. El proyecto remoto se crea en la fase 6 (`npx supabase link` + `npx supabase db push`).
 
 ## Estructura del repo
 
@@ -63,7 +64,7 @@ Navegador staff ─────(anon key + sesión email)─────┘
 - [ ] Crear la estructura de carpetas de arriba (archivos vacíos o con placeholder)
 - [ ] `README.md` corto: qué es, cómo levantarlo localmente (`python3 -m http.server -d web 8080`) y enlace a `dev-plans/mvp/`
 - [ ] `netlify.toml` con `publish = "web"` y sin build command
-- [ ] Crear el proyecto en Supabase (dashboard), `supabase init` y `supabase link --project-ref <ref>`
+- [ ] `npx supabase init` (el proyecto remoto se crea en la fase 6)
 
 **Verificación**: `git log` muestra el commit; `supabase projects list` muestra el proyecto enlazado.
 
@@ -279,14 +280,15 @@ with check (
 );
 ```
 
-### 1.4 Configuración en el Dashboard
+### 1.4 Configuración en el Dashboard (se aplica en la fase 6, en el proyecto remoto)
 - [ ] Auth → Providers: **Anonymous sign-ins = ON**; Email = ON.
 - [ ] Crear el primer admin: Auth → Users → Add user (email + password, auto-confirm). Luego, en el SQL Editor:
   `insert into profiles (id, full_name, role) select id, 'Admin', 'admin' from auth.users where email = '<email>';`
 - [ ] (Recomendado) Desactivar "Allow new users to sign up" **solo si** no bloquea los sign-ins anónimos. Si los bloquea, dejarlo activo: un signup sin `profiles` no tiene acceso a nada.
 
 ### Verificación
-- [ ] `supabase db push` aplica las 3 migraciones sin error.
+- [ ] `npx supabase start` (o `npx supabase db reset`) aplica las 3 migraciones sin error.
+- [ ] `node supabase/tests/rls_smoke.mjs` (con `SUPABASE_URL`, `ANON_KEY` y `SERVICE_ROLE_KEY` locales) → `ALL PASSED`. Cubre S1–S6, W2, W5, A1 y A6–A9 a nivel de API.
 - [ ] S2: `curl "$URL/rest/v1/messages?select=*" -H "apikey: $ANON"` devuelve `[]`.
 - [ ] S3/S4/S5: en el SQL Editor, usar la impersonación de rol (dropdown "Role") con un usuario operador y comprobar que `delete from conversations` y `update widget_settings` no afectan filas. El resto de S1/S3/S4 se verifica de punta a punta en la fase 2.
 
@@ -366,6 +368,9 @@ with check (
 ## Fase 6 — Deploy y prueba final
 **Cubre**: todo · **Commit**: `chore(fase-6): deploy en Netlify y checklist E2E` + tag `v0.1.0`
 
+- [ ] Crear el proyecto Supabase remoto → `npx supabase login` → `npx supabase link --project-ref <ref>` → `npx supabase db push`.
+- [ ] Aplicar la configuración del Dashboard de la sección 1.4 (anonymous sign-ins, primer admin).
+- [ ] Poner la URL y la anon key remotas en `web/config.js` y en el snippet de `web/demo.html`.
 - [ ] Subir el repo a GitHub y conectarlo a Netlify (o `netlify deploy --prod --dir web`).
 - [ ] Supabase Auth → URL Configuration: Site URL = dominio de Netlify.
 - [ ] README: snippet final de embed con la URL de Netlify (`https://<sitio>.netlify.app/widget/chat-widget.js`).
