@@ -42,7 +42,10 @@
         <div class="messages" id="messages"></div>
         <p class="notice" id="chat-closed" hidden data-text="conversationClosed"></p>
         <p class="error" id="chat-error" hidden></p>
+        <p class="muted small" id="chat-uploading" hidden data-text="uploading"></p>
         <form class="composer" id="composer">
+          <button class="btn btn-ghost" type="button" id="btn-attach" title="📎">📎</button>
+          <input type="file" id="file-input" hidden>
           <textarea name="body" rows="2" data-placeholder="replyPlaceholder"></textarea>
           <button class="btn" type="submit" data-text="send"></button>
         </form>

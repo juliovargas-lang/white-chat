@@ -39,6 +39,9 @@ export const TEXT = {
   statusOpen: 'Open',
   statusClosed: 'Closed',
   support: 'Support',
+  attach: 'Attach a file',
+  uploading: 'Uploading…',
+  fileTooLarge: 'The file is too large (max. 30 MB).',
   genericError: 'Something went wrong. Please try again.',
 
   // Settings: branding

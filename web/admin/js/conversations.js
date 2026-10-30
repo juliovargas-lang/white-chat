@@ -5,6 +5,10 @@ import { requireStaff } from './auth.js';
 const me = await requireStaff();
 const isAdmin = me.role === 'admin';
 
+const BUCKET = 'chat-attachments';
+const MAX_FILE_BYTES = 30 * 1024 * 1024;
+const PUBLIC_PREFIX = `${window.WHITE_CHAT_CONFIG.SUPABASE_URL}/storage/v1/object/public/${BUCKET}/`;
+
 const $ = (id) => document.getElementById(id);
 const els = {
   list: $('conv-list'),
@@ -16,6 +20,9 @@ const els = {
   closed: $('chat-closed'),
   error: $('chat-error'),
   composer: $('composer'),
+  attach: $('btn-attach'),
+  fileInput: $('file-input'),
+  uploading: $('chat-uploading'),
   take: $('btn-take'),
   close: $('btn-close'),
   del: $('btn-delete'),
@@ -159,8 +166,39 @@ function renderMessage(m) {
   const node = el('div', `msg ${fromVisitor ? 'from-visitor' : 'from-operator'}`);
   node.append(el('span', 'who', `${who} · ${fmtTime(m.created_at)}`));
   if (m.body) node.append(el('div', 'text', m.body));
+  const attachment = renderAttachment(m);
+  if (attachment) node.append(attachment);
   els.messages.append(node);
-  els.messages.scrollTop = els.messages.scrollHeight;
+  scrollToBottom();
+}
+
+const scrollToBottom = () => { els.messages.scrollTop = els.messages.scrollHeight; };
+
+// Only links into our own bucket are rendered: attachment_url is client-written data.
+function renderAttachment(m) {
+  if (!m.attachment_url || !m.attachment_url.startsWith(PUBLIC_PREFIX)) return null;
+  const link = document.createElement('a');
+  link.href = m.attachment_url;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  if (String(m.attachment_mime || '').startsWith('image/')) {
+    const img = el('img', 'img');
+    img.src = m.attachment_url;
+    img.alt = m.attachment_name || '';
+    img.addEventListener('load', scrollToBottom);
+    link.append(img);
+  } else {
+    link.className = 'file';
+    link.textContent = `📄 ${m.attachment_name || 'file'} (${formatSize(m.attachment_size)})`;
+  }
+  return link;
+}
+
+function formatSize(bytes) {
+  const n = Number(bytes) || 0;
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
 // ---------------------------------------------------------------------------
@@ -202,7 +240,7 @@ els.composer.addEventListener('submit', async (e) => {
   const textarea = els.composer.body;
   const body = textarea.value.trim();
   if (!body || !state.selected) return;
-  const button = els.composer.querySelector('button');
+  const button = els.composer.querySelector('button[type=submit]');
   button.disabled = true;
   const { data, error } = await supabase
     .from('messages')
@@ -219,6 +257,53 @@ els.composer.addEventListener('submit', async (e) => {
   showError('');
   renderMessage(data);
 });
+
+els.attach.title = TEXT.attach;
+els.attach.addEventListener('click', () => els.fileInput.click());
+els.fileInput.addEventListener('change', () => {
+  const file = els.fileInput.files[0];
+  els.fileInput.value = '';
+  if (file) sendFile(file);
+});
+
+async function sendFile(file) {
+  if (!state.selected) return;
+  if (file.size > MAX_FILE_BYTES) {
+    showError(TEXT.fileTooLarge);
+    return;
+  }
+  const convId = state.selected.id;
+  els.attach.disabled = true;
+  els.uploading.hidden = false;
+  showError('');
+  try {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100);
+    const path = `${convId}/${crypto.randomUUID()}-${safeName}`;
+    const storage = supabase.storage.from(BUCKET);
+    const { error: uploadError } = await storage.upload(path, file, {
+      contentType: file.type || 'application/octet-stream',
+    });
+    if (uploadError) throw uploadError;
+    const { data: { publicUrl } } = storage.getPublicUrl(path);
+    const { data, error } = await supabase
+      .from('messages')
+      .insert({
+        conversation_id: convId, sender_type: 'operator', body: null,
+        attachment_url: publicUrl, attachment_name: file.name,
+        attachment_size: file.size, attachment_mime: file.type || 'application/octet-stream',
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    if (state.selected?.id === convId) renderMessage(data);
+  } catch (err) {
+    console.error(err);
+    showError(TEXT.genericError);
+  } finally {
+    els.attach.disabled = false;
+    els.uploading.hidden = true;
+  }
+}
 
 els.composer.body.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {

@@ -92,6 +92,10 @@ label { display: flex; flex-direction: column; gap: 4px; font-weight: 500; }
 #chat-error { padding: 0 16px 8px; }
 .composer { display: flex; gap: 8px; padding: 10px 16px; background: #fff; border-top: 1px solid var(--border); }
 .composer textarea { resize: none; }
+#chat-uploading { padding: 0 16px 8px; margin: 0; }
+.msg .file { display: inline-block; padding: 8px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--border); color: var(--text); text-decoration: none; word-break: break-all; }
+.msg .file:hover { text-decoration: underline; }
+.msg .img { display: block; max-width: 260px; max-height: 260px; border-radius: 12px; border: 1px solid var(--border); }
 
 .visitor-pane { background: #fff; border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; }
 .visitor-pane dl { margin: 0; }

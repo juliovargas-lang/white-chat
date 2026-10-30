@@ -33,11 +33,16 @@
     newChat: 'Start new chat',
     genericError: 'Something went wrong. Please try again.',
     loadError: 'The chat could not be loaded.',
+    attachButton: 'Attach a file',
+    uploading: 'Uploading…',
+    fileTooLarge: 'The file is too large (max. 30 MB).',
   };
 
   const SUPABASE_JS = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
   const LS_CONVERSATION = 'wc-conversation-id';
   const RATE_LIMIT_COOLDOWN_MS = 5000;
+  const MAX_FILE_BYTES = 30 * 1024 * 1024;
+  const BUCKET = 'chat-attachments';
 
   // Must be read synchronously, before any await.
   const script = document.currentScript;
@@ -101,6 +106,11 @@
     .closed { text-align: center; margin-top: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
     .footer { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #e3e6ea; background: #fff; }
     .footer textarea { min-height: 38px; height: 38px; resize: none; }
+    .attach { background: #fff; color: #656d76; border: 1px solid #d0d7de; border-radius: 8px; width: 38px; flex: none; cursor: pointer; font-size: 18px; }
+    .attach:disabled { opacity: .6; cursor: default; }
+    .file { display: inline-block; padding: 8px 12px; border-radius: 12px; background: #fff; border: 1px solid #e3e6ea; color: #1f2328; text-decoration: none; word-break: break-all; }
+    .file:hover { text-decoration: underline; }
+    .img { display: block; max-width: 220px; max-height: 220px; border-radius: 12px; border: 1px solid #e3e6ea; }
   `;
 
   const CHAT_ICON =
@@ -148,7 +158,17 @@
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
     ui.sendBtn = el('button', { class: 'btn', text: TEXT.sendButton, onclick: sendMessage });
-    ui.footer = el('div', { class: 'footer', hidden: '' }, [ui.input, ui.sendBtn]);
+    ui.fileInput = el('input', { type: 'file', hidden: '' });
+    ui.fileInput.addEventListener('change', () => {
+      const file = ui.fileInput.files[0];
+      ui.fileInput.value = '';
+      if (file) sendFile(file);
+    });
+    ui.attachBtn = el('button', {
+      class: 'attach', title: TEXT.attachButton, 'aria-label': TEXT.attachButton, text: '📎',
+      onclick: () => ui.fileInput.click(),
+    });
+    ui.footer = el('div', { class: 'footer', hidden: '' }, [ui.attachBtn, ui.input, ui.sendBtn, ui.fileInput]);
 
     ui.panel.append(header, ui.body, ui.footer);
     const bubble = el('button', { class: 'bubble', 'aria-label': TEXT.openButton, html: CHAT_ICON, onclick: togglePanel });
@@ -210,8 +230,31 @@
     const who = isVisitor ? TEXT.you : m.operator_name || TEXT.operatorFallback;
     const node = el('div', { class: `msg ${m.sender_type}` }, [el('span', { class: 'who', text: who })]);
     if (m.body) node.append(el('div', { class: 'text', text: m.body }));
+    const attachment = renderAttachment(m);
+    if (attachment) node.append(attachment);
     ui.msgs.append(node);
     scrollToBottom();
+  }
+
+  // Only links into our own bucket are rendered: attachment_url is client-written data.
+  function renderAttachment(m) {
+    const prefix = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/`;
+    if (!m.attachment_url || !m.attachment_url.startsWith(prefix)) return null;
+    const link = el('a', { href: m.attachment_url, target: '_blank', rel: 'noopener noreferrer' });
+    if (String(m.attachment_mime || '').startsWith('image/')) {
+      link.append(el('img', { class: 'img', src: m.attachment_url, alt: m.attachment_name || '', onload: scrollToBottom }));
+    } else {
+      link.className = 'file';
+      link.textContent = `📄 ${m.attachment_name || 'file'} (${formatSize(m.attachment_size)})`;
+    }
+    return link;
+  }
+
+  function formatSize(bytes) {
+    const n = Number(bytes) || 0;
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+    return `${(n / 1024 / 1024).toFixed(1)} MB`;
   }
 
   function setStatus(status) {
@@ -338,6 +381,43 @@
     if (conv && conv.status === 'closed') setStatus('closed');
     else showNotice(TEXT.genericError);
     ui.sendBtn.disabled = false;
+  }
+
+  async function sendFile(file) {
+    if (!conversationId) return;
+    if (file.size > MAX_FILE_BYTES) {
+      showNotice(TEXT.fileTooLarge);
+      return;
+    }
+    ui.attachBtn.disabled = true;
+    showNotice(TEXT.uploading);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-100);
+      const path = `${conversationId}/${crypto.randomUUID()}-${safeName}`;
+      const storage = supabase.storage.from(BUCKET);
+      const { error: uploadError } = await storage.upload(path, file, {
+        contentType: file.type || 'application/octet-stream',
+      });
+      if (uploadError) throw uploadError;
+      const { data: { publicUrl } } = storage.getPublicUrl(path);
+      const { data, error } = await supabase
+        .from('messages')
+        .insert({
+          conversation_id: conversationId, sender_type: 'visitor', body: null,
+          attachment_url: publicUrl, attachment_name: file.name,
+          attachment_size: file.size, attachment_mime: file.type || 'application/octet-stream',
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      showNotice('');
+      renderMessage(data);
+    } catch (err) {
+      console.error('[white-chat]', err);
+      showNotice(isRateLimit(err) ? TEXT.rateLimited : TEXT.genericError);
+    } finally {
+      ui.attachBtn.disabled = false;
+    }
   }
 
   function resetConversation() {

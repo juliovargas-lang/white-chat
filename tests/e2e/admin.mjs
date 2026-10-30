@@ -63,7 +63,7 @@ try {
 
   // A3: reply reaches widget
   await op.type('#composer textarea', 'We are checking it right now');
-  await op.click('#composer button');
+  await op.click('#composer button[type=submit]');
   check('A3/W3 reply reaches widget with operator name', await waitInWidget(visitor, (r) =>
     [...r.querySelectorAll('.msg.operator')].some((m) =>
       m.textContent.includes('We are checking it right now') && m.textContent.includes('Oscar Operator'))));

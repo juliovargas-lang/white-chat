@@ -3,7 +3,7 @@
 > Se actualiza al empezar y al cerrar cada fase, dentro del mismo commit de la fase.
 > Estados: ⬜ pendiente · 🟡 en curso · ✅ hecha · ✂️ recortada
 
-**Fase actual**: Fase 5 — Adjuntos
+**Fase actual**: Fase 6 — Deploy y prueba final (requiere al usuario: proyecto Supabase + Netlify)
 **Última actualización**: 2026-10-30
 
 ## Fases
@@ -15,7 +15,7 @@
 | 2 | Widget núcleo | P0 | ✅ | `feat(fase-2)` |
 | 3 | Admin: login y conversaciones | P0 | ✅ | `feat(fase-3)` |
 | 4 | Admin: marca blanca (P0) y staff (P1) | P0/P1 | ✅ | `feat(fase-4)` |
-| 5 | Adjuntos | P1 | ⬜ | — |
+| 5 | Adjuntos | P1 | ✅ | `feat(fase-5)` |
 | 6 | Deploy y prueba final | P0 | ⬜ | — |
 
 ## Cobertura del SPEC
@@ -23,12 +23,12 @@
 | Requisito | Fase | Verificado |
 |---|---|---|
 | W1–W7, W9 | 2 | ✅ (E2E) |
-| W8 | 5 | ⬜ |
+| W8 | 5 | ✅ (E2E) |
 | A1–A7, A11 | 3 | ✅ (E2E) |
 | A8, A9 | 4 | ✅ (E2E) |
-| A10 | 5 | ⬜ |
+| A10 | 5 | ✅ (E2E) |
 | S1–S5 | 1–3 | ✅ API (fase 1) + UI/Realtime (fases 2–3) |
-| S6 | 5 | 🟡 API ✅ (fase 1), falta UI |
+| S6 | 5 | ✅ API (fase 1) + UI (fase 5) |
 | S7 | todas | ⬜ |
 
 ## Decisiones
@@ -83,3 +83,10 @@
 - Migración `0004_profile_email.sql`.
 - `tests/e2e/settings.mjs`: 14 comprobaciones (A8, A9, S5) → ALL PASSED. Restaura `widget_settings` al terminar.
 - Los E2E usan por defecto las keys de demo del stack local (no hace falta exportar variables).
+
+### Fase 5 — ✅
+- Adjuntos en el widget (botón 📎) y en el admin (📎 en el composer): validación de ≤ 30MB en el cliente, ruta `{conv_id}/{uuid}-{nombre_saneado}`, `getPublicUrl` y mensaje con `attachment_*`. Mientras sube se muestra "Uploading…".
+- Render: las imágenes en línea y el resto como enlace con nombre y tamaño.
+- **Seguridad**: `attachment_url` la escribe el cliente → solo se muestran URLs que empiezan con `<SUPABASE_URL>/storage/v1/object/public/chat-attachments/` (evita `javascript:` y enlaces a dominios externos).
+- `tests/e2e/attachments.mjs`: 7 comprobaciones (W8, A10, URL forjada) → ALL PASSED. Regresión completa (widget, admin, settings, rls_smoke) ✅.
+- Bug corregido: el botón de enviar del admin se buscaba con `querySelector('button')`, que ahora devolvía el de adjuntar.
