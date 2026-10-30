@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>White Chat Admin — Conversations</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="../config.js"></script>
+</head>
+<body class="app">
+  <header class="topbar">
+    <strong data-text="appName"></strong>
+    <nav>
+      <a href="conversations.html" class="active" data-text="navConversations"></a>
+      <a href="admin.html" data-admin-only hidden data-text="navAdmin"></a>
+    </nav>
+    <span class="spacer"></span>
+    <span class="muted" data-user-name></span>
+    <button class="btn btn-ghost" data-logout data-text="logout"></button>
+  </header>
+
+  <main class="conversations">
+    <aside class="list-pane">
+      <div class="tabs">
+        <button class="tab active" data-filter="open" data-text="filterOpen"></button>
+        <button class="tab" data-filter="closed" data-text="filterClosed"></button>
+      </div>
+      <ul class="conv-list" id="conv-list"></ul>
+    </aside>
+
+    <section class="chat-pane">
+      <p class="empty" id="chat-empty" data-text="selectConversation"></p>
+      <div class="chat" id="chat" hidden>
+        <div class="chat-header">
+          <strong id="chat-title"></strong>
+          <span class="muted" id="chat-assigned"></span>
+          <span class="spacer"></span>
+          <button class="btn btn-ghost" id="btn-take" data-text="take"></button>
+          <button class="btn btn-ghost" id="btn-close" data-text="close"></button>
+          <button class="btn btn-danger" id="btn-delete" data-admin-only hidden data-text="delete"></button>
+        </div>
+        <div class="messages" id="messages"></div>
+        <p class="notice" id="chat-closed" hidden data-text="conversationClosed"></p>
+        <p class="error" id="chat-error" hidden></p>
+        <form class="composer" id="composer">
+          <textarea name="body" rows="2" data-placeholder="replyPlaceholder"></textarea>
+          <button class="btn" type="submit" data-text="send"></button>
+        </form>
+      </div>
+    </section>
+
+    <aside class="visitor-pane" id="visitor" hidden>
+      <h3 data-text="visitorDetails"></h3>
+      <dl>
+        <dt data-text="visitorName"></dt><dd data-field="visitor_name"></dd>
+        <dt data-text="visitorPhone"></dt><dd data-field="visitor_phone"></dd>
+        <dt data-text="visitorDni"></dt><dd data-field="visitor_dni"></dd>
+        <dt data-text="startedAt"></dt><dd data-field="created_at"></dd>
+        <dt data-text="status"></dt><dd data-field="status"></dd>
+        <dt data-text="assignedTo"></dt><dd data-field="assigned"></dd>
+      </dl>
+    </aside>
+  </main>
+
+  <script type="module" src="js/conversations.js"></script>
+</body>
+</html>

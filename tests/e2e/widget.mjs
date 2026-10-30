@@ -2,61 +2,9 @@
 // Setup: cd tests/e2e && npm install
 // Run:   python3 -m http.server -d web 8787 &   (from repo root)
 //        ANON_KEY=... SERVICE_ROLE_KEY=... node tests/e2e/widget.mjs
-import puppeteer from 'puppeteer-core';
+import { check, finish, sleep, rest, makeUser, launch, inWidget, waitInWidget, SITE } from './lib.mjs';
 
-const SITE = process.env.SITE_URL || 'http://localhost:8787';
-const SUPA = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
-const ANON = process.env.ANON_KEY;
-const SERVICE = process.env.SERVICE_ROLE_KEY;
-const CHROME = process.env.CHROME_PATH || '/usr/bin/google-chrome';
-if (!ANON || !SERVICE) throw new Error('Missing ANON_KEY / SERVICE_ROLE_KEY');
-
-let failures = 0;
-const check = (name, ok, extra = '') => {
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${ok ? '' : '  ' + extra}`);
-  if (!ok) failures++;
-};
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-async function rest(path, { token, key = ANON, method = 'GET', body } = {}) {
-  const res = await fetch(SUPA + path, {
-    method,
-    headers: {
-      apikey: key, Authorization: `Bearer ${token || key}`,
-      'Content-Type': 'application/json', Prefer: 'return=representation',
-    },
-    body: body && JSON.stringify(body),
-  });
-  return { ok: res.ok, data: await res.json().catch(() => null) };
-}
-
-async function makeOperator() {
-  const stamp = Date.now();
-  const email = `e2e-op${stamp}@test.local`;
-  const password = 'Passw0rd!' + stamp;
-  const u = await rest('/auth/v1/admin/users', { key: SERVICE, method: 'POST', body: { email, password, email_confirm: true } });
-  await rest('/rest/v1/profiles', { key: SERVICE, method: 'POST', body: { id: u.data.id, full_name: 'Olivia Operator', role: 'operator' } });
-  const t = await rest('/auth/v1/token?grant_type=password', { method: 'POST', body: { email, password } });
-  return t.data.access_token;
-}
-
-// Run a function inside the widget's shadow root.
-const inWidget = (page, fn, ...args) =>
-  page.evaluate((src, ...a) => {
-    const root = document.querySelector('#white-chat-root')?.shadowRoot;
-    return new Function('root', '...a', `return (${src})(root, ...a)`)(root, ...a);
-  }, fn.toString(), ...args);
-
-async function waitInWidget(page, fn, timeout = 8000, ...args) {
-  const start = Date.now();
-  while (Date.now() - start < timeout) {
-    if (await inWidget(page, fn, ...args).catch(() => false)) return true;
-    await sleep(200);
-  }
-  return false;
-}
-
-const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ['--no-sandbox'] });
+const browser = await launch();
 try {
   const page = await browser.newPage();
   page.on('pageerror', (e) => console.log('pageerror:', e.message));
@@ -91,7 +39,7 @@ try {
 
   // W3 realtime operator message
   await sleep(1000); // let the realtime channel join
-  const OP = await makeOperator();
+  const { token: OP } = await makeUser({ fullName: 'Olivia Operator', role: 'operator' });
   await rest('/rest/v1/messages', { method: 'POST', token: OP, body: { conversation_id: convId, sender_type: 'operator', body: 'Hello from support' } });
   check('W3 operator message arrives in realtime',
     await waitInWidget(page, (r) => [...r.querySelectorAll('.msg.operator')].some((m) => m.textContent.includes('Hello from support'))));
@@ -127,5 +75,4 @@ try {
   await browser.close();
 }
 
-console.log(failures ? `\n${failures} FAILED` : '\nALL PASSED');
-process.exit(failures ? 1 : 0);
+finish();

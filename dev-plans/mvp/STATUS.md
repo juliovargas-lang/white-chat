@@ -3,7 +3,7 @@
 > Se actualiza al empezar y al cerrar cada fase, dentro del mismo commit de la fase.
 > Estados: ⬜ pendiente · 🟡 en curso · ✅ hecha · ✂️ recortada
 
-**Fase actual**: Fase 3 — Admin: login y conversaciones
+**Fase actual**: Fase 4 — Admin: marca blanca y staff
 **Última actualización**: 2026-10-30
 
 ## Fases
@@ -13,7 +13,7 @@
 | 0 | Setup del repo y docs SDD | P0 | ✅ | `chore(fase-0)` |
 | 1 | Base de datos, RLS y Storage | P0 | ✅ | `feat(fase-1)` |
 | 2 | Widget núcleo | P0 | ✅ | `feat(fase-2)` |
-| 3 | Admin: login y conversaciones | P0 | ⬜ | — |
+| 3 | Admin: login y conversaciones | P0 | ✅ | `feat(fase-3)` |
 | 4 | Admin: marca blanca (P0) y staff (P1) | P0/P1 | ⬜ | — |
 | 5 | Adjuntos | P1 | ⬜ | — |
 | 6 | Deploy y prueba final | P0 | ⬜ | — |
@@ -24,10 +24,10 @@
 |---|---|---|
 | W1–W7, W9 | 2 | ✅ (E2E) |
 | W8 | 5 | ⬜ |
-| A1–A7, A11 | 3 | ⬜ |
+| A1–A7, A11 | 3 | ✅ (E2E) |
 | A8, A9 | 4 | ⬜ |
 | A10 | 5 | ⬜ |
-| S1–S5 | 1–3 | 🟡 API ✅ (fase 1), falta UI/Realtime |
+| S1–S5 | 1–3 | ✅ API (fase 1) + UI/Realtime (fases 2–3) |
 | S6 | 5 | 🟡 API ✅ (fase 1), falta UI |
 | S7 | todas | ⬜ |
 
@@ -68,3 +68,11 @@
   - Realtime no entregaba eventos justo después de `signInAnonymously` (el canal se unía con la anon key). Solución: `supabase.realtime.setAuth(session.access_token)` antes de suscribirse. **Aplicar lo mismo en el admin tras el login.**
   - `display:flex` anulaba el atributo `hidden` → regla global `[hidden] { display:none !important }`.
   - El `letter-spacing` del sitio anfitrión se heredaba → `host.style.all = 'initial'` inline.
+
+### Fase 3 — ✅
+- `web/admin/`: `index.html` (login), `conversations.html` (lista | chat | visitante), `css/styles.css` (incluye estilos de `admin.html` para la fase 4) y `js/{text,supabase,auth,conversations}.js`.
+- `auth.js` → `requireStaff({ adminOnly })`: redirige si no hay perfil o si no es admin; aplica `realtime.setAuth`; arma el header (nombre, logout, `[data-admin-only]`).
+- Realtime del admin: un canal con `conversations` (*) y `messages` (INSERT). La lista se recarga con un debounce de 300 ms.
+- La conversación seleccionada va en el hash de la URL (`#<id>`).
+- `tests/e2e/admin.mjs`: 19 comprobaciones (A1–A7, A11, W3/W6 de punta a punta) → ALL PASSED. Helpers comunes en `tests/e2e/lib.mjs`.
+- Limitación: los nombres del staff se cargan una vez al abrir la página (un staff nuevo aparece como "—" hasta recargar).

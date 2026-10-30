@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>White Chat Admin — Sign in</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="../config.js"></script>
+</head>
+<body class="login-page">
+  <form class="card login" id="login-form">
+    <h1 data-text="appName"></h1>
+    <h2 data-text="loginTitle"></h2>
+    <label><span data-text="email"></span><input type="email" name="email" required autocomplete="username"></label>
+    <label><span data-text="password"></span><input type="password" name="password" required autocomplete="current-password"></label>
+    <p class="error" id="login-error" hidden></p>
+    <button class="btn" type="submit" data-text="loginButton"></button>
+  </form>
+
+  <script type="module">
+    import { TEXT, applyText } from './js/text.js';
+    import { login, currentStaff } from './js/auth.js';
+
+    applyText();
+    const form = document.getElementById('login-form');
+    const errorEl = document.getElementById('login-error');
+    const button = form.querySelector('button');
+    const showError = (msg) => { errorEl.textContent = msg; errorEl.hidden = !msg; };
+
+    if (new URLSearchParams(location.search).get('error') === 'unauthorized') showError(TEXT.notAuthorized);
+    if (await currentStaff()) location.href = 'conversations.html';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showError('');
+      button.disabled = true;
+      button.textContent = TEXT.signingIn;
+      const error = await login(form.email.value.trim(), form.password.value);
+      if (!error) { location.href = 'conversations.html'; return; }
+      showError(error);
+      button.disabled = false;
+      button.textContent = TEXT.loginButton;
+    });
+  </script>
+</body>
+</html>

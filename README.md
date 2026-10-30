@@ -25,7 +25,7 @@ web/                   static site published by Netlify
    - Admin: http://localhost:8787/admin/
    - Widget demo: http://localhost:8787/demo.html
 4. E2E (headless Chrome): `cd tests/e2e && npm install && cd ../..` then
-   `ANON_KEY=... SERVICE_ROLE_KEY=... node tests/e2e/widget.mjs`
+   `ANON_KEY=... SERVICE_ROLE_KEY=... node tests/e2e/widget.mjs` (also `admin.mjs`)
 
 ## Embed
 
