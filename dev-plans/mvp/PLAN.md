@@ -50,6 +50,7 @@ Navegador staff ─────(anon key + sesión email)─────┘
 │       ├── admin.html       # staff + marca blanca (solo admin)
 │       ├── css/styles.css
 │       └── js/{text.js, supabase.js, auth.js, conversations.js, admin.js}
+├── tests/e2e/               # puppeteer-core: widget.mjs, admin.mjs
 ├── netlify.toml
 ├── .gitignore
 └── README.md

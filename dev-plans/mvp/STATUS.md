@@ -3,7 +3,7 @@
 > Se actualiza al empezar y al cerrar cada fase, dentro del mismo commit de la fase.
 > Estados: ⬜ pendiente · 🟡 en curso · ✅ hecha · ✂️ recortada
 
-**Fase actual**: Fase 2 — Widget núcleo
+**Fase actual**: Fase 3 — Admin: login y conversaciones
 **Última actualización**: 2026-10-30
 
 ## Fases
@@ -12,7 +12,7 @@
 |---|---|---|---|---|
 | 0 | Setup del repo y docs SDD | P0 | ✅ | `chore(fase-0)` |
 | 1 | Base de datos, RLS y Storage | P0 | ✅ | `feat(fase-1)` |
-| 2 | Widget núcleo | P0 | ⬜ | — |
+| 2 | Widget núcleo | P0 | ✅ | `feat(fase-2)` |
 | 3 | Admin: login y conversaciones | P0 | ⬜ | — |
 | 4 | Admin: marca blanca (P0) y staff (P1) | P0/P1 | ⬜ | — |
 | 5 | Adjuntos | P1 | ⬜ | — |
@@ -22,7 +22,7 @@
 
 | Requisito | Fase | Verificado |
 |---|---|---|
-| W1–W7, W9 | 2 | ⬜ |
+| W1–W7, W9 | 2 | ✅ (E2E) |
 | W8 | 5 | ⬜ |
 | A1–A7, A11 | 3 | ⬜ |
 | A8, A9 | 4 | ⬜ |
@@ -60,3 +60,11 @@
 - `web/config.js` apunta al Supabase local (URL y anon key de demo, que son públicas). Se cambia en la fase 6.
 - Para levantar: `npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta`; las keys salen con `npx supabase status`.
 - Realtime no está probado todavía (se prueba con la UI en las fases 2–3).
+
+### Fase 2 — ✅
+- `web/widget/chat-widget.js` (vanilla, Shadow DOM, textos en `TEXT`) y `web/demo.html` (con CSS hostil a propósito).
+- `tests/e2e/widget.mjs` (puppeteer-core + Chrome del sistema): 15 comprobaciones W1–W7 y W9 → ALL PASSED. Setup: `cd tests/e2e && npm install`; servir `web/` en el puerto 8787 (el 8080 está ocupado en esta máquina).
+- Problemas encontrados y corregidos:
+  - Realtime no entregaba eventos justo después de `signInAnonymously` (el canal se unía con la anon key). Solución: `supabase.realtime.setAuth(session.access_token)` antes de suscribirse. **Aplicar lo mismo en el admin tras el login.**
+  - `display:flex` anulaba el atributo `hidden` → regla global `[hidden] { display:none !important }`.
+  - El `letter-spacing` del sitio anfitrión se heredaba → `host.style.all = 'initial'` inline.

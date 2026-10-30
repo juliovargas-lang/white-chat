@@ -21,9 +21,11 @@ web/                   static site published by Netlify
    `npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,mailpit,postgres-meta`
    (`web/config.js` already points to the local stack; keys via `npx supabase status`).
 2. Security smoke test: `SUPABASE_URL=http://127.0.0.1:54321 ANON_KEY=... SERVICE_ROLE_KEY=... node supabase/tests/rls_smoke.mjs`
-3. Serve the static site: `python3 -m http.server -d web 8080`
-   - Admin: http://localhost:8080/admin/
-   - Widget demo: http://localhost:8080/demo.html
+3. Serve the static site: `python3 -m http.server -d web 8787`
+   - Admin: http://localhost:8787/admin/
+   - Widget demo: http://localhost:8787/demo.html
+4. E2E (headless Chrome): `cd tests/e2e && npm install && cd ../..` then
+   `ANON_KEY=... SERVICE_ROLE_KEY=... node tests/e2e/widget.mjs`
 
 ## Embed
 
