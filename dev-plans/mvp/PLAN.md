@@ -39,7 +39,8 @@ Navegador staff ─────(anon key + sesión email)─────┘
 │   └── migrations/
 │       ├── 0001_schema.sql
 │       ├── 0002_rls.sql
-│       └── 0003_storage.sql
+│       ├── 0003_storage.sql
+│       └── 0004_profile_email.sql   # añadido en la fase 4
 ├── web/                     # publish dir de Netlify
 │   ├── config.js            # SUPABASE_URL + ANON_KEY (públicas)
 │   ├── demo.html            # página de prueba que embebe el widget
@@ -284,7 +285,7 @@ with check (
 ### 1.4 Configuración en el Dashboard (se aplica en la fase 6, en el proyecto remoto)
 - [ ] Auth → Providers: **Anonymous sign-ins = ON**; Email = ON.
 - [ ] Crear el primer admin: Auth → Users → Add user (email + password, auto-confirm). Luego, en el SQL Editor:
-  `insert into profiles (id, full_name, role) select id, 'Admin', 'admin' from auth.users where email = '<email>';`
+  `insert into profiles (id, full_name, role, email) select id, 'Admin', 'admin', email from auth.users where email = '<email>';`
 - [ ] (Recomendado) Desactivar "Allow new users to sign up" **solo si** no bloquea los sign-ins anónimos. Si los bloquea, dejarlo activo: un signup sin `profiles` no tiene acceso a nada.
 
 ### Verificación
@@ -344,7 +345,7 @@ with check (
 
 - [ ] `admin.html` redirige a conversaciones si `role !== 'admin'`.
 - [ ] Sección **Marca blanca** (A9): input de nombre del chat, `<input type="color">` ×2, preview simple del header → `update widget_settings … eq('id', 1)`.
-- [ ] Sección **Staff** (A8, recortable): tabla de `profiles` (nombre, rol); cambiar el rol (`update`); quitar el acceso (`delete`, no a uno mismo); formulario "Grant access" (email, name, role) → `rpc('add_staff')`, con el aviso "The user must already exist in Supabase Auth → Users".
+- [ ] Sección **Staff** (A8, recortable): tabla de `profiles` (nombre, email, rol); cambiar el rol (`update`); quitar el acceso (`delete`, no a uno mismo); formulario "Grant access" (email, name, role) → `rpc('add_staff')`, con el aviso "The user must already exist in Supabase Auth → Users".
 
 ### Verificación
 - [ ] Cambiar el color o el nombre → recargar `demo.html` → se aplica.

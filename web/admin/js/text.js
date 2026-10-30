@@ -40,6 +40,30 @@ export const TEXT = {
   statusClosed: 'Closed',
   support: 'Support',
   genericError: 'Something went wrong. Please try again.',
+
+  // Settings: branding
+  brandingTitle: 'Chat branding',
+  chatName: 'Chat name',
+  primaryColor: 'Primary color',
+  secondaryColor: 'Text color on primary',
+  preview: 'Preview',
+  save: 'Save',
+  saved: 'Saved. Reload the website to see the changes in the widget.',
+
+  // Settings: staff
+  staffTitle: 'Staff',
+  staffName: 'Name',
+  staffRole: 'Role',
+  roleAdmin: 'Admin',
+  roleOperator: 'Operator',
+  removeAccess: 'Remove access',
+  confirmRemoveAccess: 'Remove panel access for this user?',
+  you: '(you)',
+  grantTitle: 'Grant access',
+  grantHint: 'First create the user in Supabase → Authentication → Users (email + password). Then grant access here with the same email.',
+  grantButton: 'Grant access',
+  granted: 'Access granted.',
+  userNotFound: 'No user with that email. Create it first in Supabase → Authentication → Users.',
 };
 
 export function applyText(root = document) {

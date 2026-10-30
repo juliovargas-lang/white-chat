@@ -1,7 +1,7 @@
 // E2E for the widget (SPEC W1–W7, W9) with headless Chrome. Local stack only.
 // Setup: cd tests/e2e && npm install
 // Run:   python3 -m http.server -d web 8787 &   (from repo root)
-//        ANON_KEY=... SERVICE_ROLE_KEY=... node tests/e2e/widget.mjs
+//        node tests/e2e/widget.mjs   (local stack keys by default)
 import { check, finish, sleep, rest, makeUser, launch, inWidget, waitInWidget, SITE } from './lib.mjs';
 
 const browser = await launch();

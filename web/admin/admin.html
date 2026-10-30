@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>White Chat Admin — Settings</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="../config.js"></script>
+</head>
+<body class="app">
+  <header class="topbar">
+    <strong data-text="appName"></strong>
+    <nav>
+      <a href="conversations.html" data-text="navConversations"></a>
+      <a href="admin.html" class="active" data-admin-only hidden data-text="navAdmin"></a>
+    </nav>
+    <span class="spacer"></span>
+    <span class="muted" data-user-name></span>
+    <button class="btn btn-ghost" data-logout data-text="logout"></button>
+  </header>
+
+  <main class="settings">
+    <section class="card">
+      <h2 data-text="brandingTitle"></h2>
+      <form id="branding-form">
+        <label><span data-text="chatName"></span><input name="chat_name" required maxlength="60"></label>
+        <div class="row">
+          <label><span data-text="primaryColor"></span><input type="color" name="primary_color"></label>
+          <label><span data-text="secondaryColor"></span><input type="color" name="secondary_color"></label>
+        </div>
+        <span class="muted small" data-text="preview"></span>
+        <div class="preview-header" id="branding-preview"></div>
+        <p class="ok" id="branding-ok" hidden data-text="saved"></p>
+        <p class="error" id="branding-error" hidden></p>
+        <div><button class="btn" type="submit" data-text="save"></button></div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2 data-text="staffTitle"></h2>
+      <table>
+        <thead><tr><th data-text="staffName"></th><th data-text="email"></th><th data-text="staffRole"></th><th></th></tr></thead>
+        <tbody id="staff-rows"></tbody>
+      </table>
+      <p class="error" id="staff-error" hidden></p>
+
+      <h3 style="margin-top: 24px" data-text="grantTitle"></h3>
+      <p class="muted small" data-text="grantHint"></p>
+      <form id="grant-form">
+        <div class="row">
+          <label><span data-text="email"></span><input type="email" name="email" required></label>
+          <label><span data-text="staffName"></span><input name="full_name" required></label>
+          <label><span data-text="staffRole"></span>
+            <select name="role">
+              <option value="operator" data-text="roleOperator"></option>
+              <option value="admin" data-text="roleAdmin"></option>
+            </select>
+          </label>
+          <button class="btn" type="submit" data-text="grantButton"></button>
+        </div>
+        <p class="ok" id="grant-ok" hidden data-text="granted"></p>
+        <p class="error" id="grant-error" hidden></p>
+      </form>
+    </section>
+  </main>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>

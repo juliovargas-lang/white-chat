@@ -3,10 +3,12 @@ import puppeteer from 'puppeteer-core';
 
 export const SITE = process.env.SITE_URL || 'http://localhost:8787';
 export const SUPA = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
-export const ANON = process.env.ANON_KEY;
-export const SERVICE = process.env.SERVICE_ROLE_KEY;
+// Defaults are the well-known demo keys of the local Supabase stack (same on every machine).
+const LOCAL_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
+const LOCAL_SERVICE = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
+export const ANON = process.env.ANON_KEY || LOCAL_ANON;
+export const SERVICE = process.env.SERVICE_ROLE_KEY || LOCAL_SERVICE;
 const CHROME = process.env.CHROME_PATH || '/usr/bin/google-chrome';
-if (!ANON || !SERVICE) throw new Error('Missing ANON_KEY / SERVICE_ROLE_KEY');
 
 let failures = 0;
 export const check = (name, ok, extra = '') => {

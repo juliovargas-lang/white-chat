@@ -3,7 +3,7 @@
 > Se actualiza al empezar y al cerrar cada fase, dentro del mismo commit de la fase.
 > Estados: ⬜ pendiente · 🟡 en curso · ✅ hecha · ✂️ recortada
 
-**Fase actual**: Fase 4 — Admin: marca blanca y staff
+**Fase actual**: Fase 5 — Adjuntos
 **Última actualización**: 2026-10-30
 
 ## Fases
@@ -14,7 +14,7 @@
 | 1 | Base de datos, RLS y Storage | P0 | ✅ | `feat(fase-1)` |
 | 2 | Widget núcleo | P0 | ✅ | `feat(fase-2)` |
 | 3 | Admin: login y conversaciones | P0 | ✅ | `feat(fase-3)` |
-| 4 | Admin: marca blanca (P0) y staff (P1) | P0/P1 | ⬜ | — |
+| 4 | Admin: marca blanca (P0) y staff (P1) | P0/P1 | ✅ | `feat(fase-4)` |
 | 5 | Adjuntos | P1 | ⬜ | — |
 | 6 | Deploy y prueba final | P0 | ⬜ | — |
 
@@ -25,7 +25,7 @@
 | W1–W7, W9 | 2 | ✅ (E2E) |
 | W8 | 5 | ⬜ |
 | A1–A7, A11 | 3 | ✅ (E2E) |
-| A8, A9 | 4 | ⬜ |
+| A8, A9 | 4 | ✅ (E2E) |
 | A10 | 5 | ⬜ |
 | S1–S5 | 1–3 | ✅ API (fase 1) + UI/Realtime (fases 2–3) |
 | S6 | 5 | 🟡 API ✅ (fase 1), falta UI |
@@ -38,6 +38,7 @@
 - 2026-10-30 — Widget y admin se sirven desde Netlify (sin jsDelivr).
 - 2026-10-30 — Sin logos: la marca es solo texto (`chat_name`) y colores. Se elimina `widget_settings.logo_url`.
 - 2026-10-30 — Desarrollo contra Supabase local (Docker); el proyecto remoto se crea en la fase 6. Así no hay bloqueos hasta el deploy.
+- 2026-10-30 — Se agrega `profiles.email` (migración 0004, completada por `add_staff`) para distinguir al staff en la tabla. Fuera del plan original, pero el costo es mínimo.
 - 2026-10-30 — UI en inglés con los textos centralizados (`TEXT` en el widget, `web/admin/js/text.js` en el admin). El rol `operador` pasa a `operator` en el enum.
 
 ## Bloqueos / pendientes
@@ -76,3 +77,9 @@
 - La conversación seleccionada va en el hash de la URL (`#<id>`).
 - `tests/e2e/admin.mjs`: 19 comprobaciones (A1–A7, A11, W3/W6 de punta a punta) → ALL PASSED. Helpers comunes en `tests/e2e/lib.mjs`.
 - Limitación: los nombres del staff se cargan una vez al abrir la página (un staff nuevo aparece como "—" hasta recargar).
+
+### Fase 4 — ✅
+- `web/admin/admin.html` + `js/admin.js`: marca blanca (nombre, 2 colores, preview en vivo) y staff (tabla con nombre/email/rol, cambio de rol, quitar acceso, dar acceso por email vía `add_staff`). No se puede cambiar el rol propio ni quitarse el acceso a uno mismo.
+- Migración `0004_profile_email.sql`.
+- `tests/e2e/settings.mjs`: 14 comprobaciones (A8, A9, S5) → ALL PASSED. Restaura `widget_settings` al terminar.
+- Los E2E usan por defecto las keys de demo del stack local (no hace falta exportar variables).

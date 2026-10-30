@@ -1,6 +1,6 @@
 // E2E for the admin panel (SPEC A1–A7, A11; W3/W6 end to end). Local stack only.
 // Run (from repo root, with web/ served on 8787):
-//   ANON_KEY=... SERVICE_ROLE_KEY=... node tests/e2e/admin.mjs
+//   node tests/e2e/admin.mjs   (local stack keys by default)
 import {
   check, finish, sleep, rest, makeUser, launch, waitFor, inWidget, waitInWidget, startVisitorChat, SITE,
 } from './lib.mjs';
