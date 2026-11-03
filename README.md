@@ -25,7 +25,7 @@ web/                   static site published to GitHub Pages (gh-pages branch)
    - Admin: http://localhost:8787/admin/
    - Widget demo: http://localhost:8787/demo.html
 4. E2E (headless Chrome): `cd tests/e2e && npm install && cd ../..` then
-   `node tests/e2e/widget.mjs` (also `admin.mjs`, `settings.mjs`, `attachments.mjs`; local stack keys by default)
+   `node tests/e2e/widget.mjs` (also `admin.mjs`, `settings.mjs`, `attachments.mjs`, `skins.mjs`, `iframe.mjs`; local stack keys by default)
 
 ## Production
 
@@ -42,7 +42,8 @@ Direct embed (no CSP, or Supabase origins allowlisted in the host CSP):
 ```html
 <script src="https://cdn.jsdelivr.net/gh/juliovargas-lang/white-chat@<commit>/web/widget/chat-widget.js"
         data-supabase-url="https://bopowpecmfdgqwlxrccf.supabase.co"
-        data-supabase-key="<anon key from web/config.js>" defer></script>
+        data-supabase-key="<anon key from web/config.js>"
+        data-skin="classic" defer></script>
 ```
 
 iframe embed (for sites with a strict Content Security Policy). The chat runs inside an
@@ -50,10 +51,22 @@ iframe on GitHub Pages, so the host page only needs `frame-src` to allow
 `https://juliovargas-lang.github.io` — no `connect-src`/`img-src` change:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/juliovargas-lang/white-chat@<commit>/web/widget/embed.js" defer></script>
+<script src="https://cdn.jsdelivr.net/gh/juliovargas-lang/white-chat@<commit>/web/widget/embed.js"
+        data-skin="dark" defer></script>
 ```
 
-Both are tested end to end in `tests/e2e/` (`widget.mjs`, `iframe.mjs`).
+### Skins
+
+The widget's look (palette + shape) comes from the injector, per site, via `data-skin`.
+Available skins: **`classic`** (light, blue), **`dark`** (dark, emerald), **`minimal`**
+(flat, square, monochrome) and **`soft`** (warm, rounded, coral). An unknown or missing
+`data-skin` falls back to `classic`. Both embeds accept it; `embed.js` forwards it into the
+iframe. Optional extras: `data-primary-color` / `data-secondary-color` (override the skin's
+accent) and `data-chat-name` (override the header title without touching the admin panel).
+`widget_settings` no longer controls color — only `chat_name` is still read, for the title.
+See all four side by side at `/demo-skins.html`.
+
+All embeds are tested end to end in `tests/e2e/` (`widget.mjs`, `iframe.mjs`, `skins.mjs`).
 
 ## Embed
 

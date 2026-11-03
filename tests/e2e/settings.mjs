@@ -50,8 +50,10 @@ try {
   const visitor = await (await browser.createBrowserContext()).newPage();
   await visitor.goto(`${SITE}/demo.html`, { waitUntil: 'networkidle0' });
   check('A9 widget shows new chat name', await waitInWidget(visitor, (r) => r?.querySelector('.title')?.textContent === 'Acme Support'));
+  // The look now comes from the skin (data-skin), not widget_settings: the saved
+  // primary_color (#ff5500) must be ignored; the default classic skin stays blue.
   const bg = await inWidget(visitor, (r) => getComputedStyle(r.querySelector('.bubble')).backgroundColor);
-  check('A9 widget uses new primary color', bg === 'rgb(255, 85, 0)', bg);
+  check('A9 widget ignores widget_settings color (skin drives the look)', bg === 'rgb(58, 99, 255)', bg);
 
   // A8 staff
   await adm.type('#grant-form [name=email]', 'nobody-here@test.local');

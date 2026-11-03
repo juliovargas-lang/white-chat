@@ -44,34 +44,114 @@
   const MAX_FILE_BYTES = 30 * 1024 * 1024;
   const BUCKET = 'chat-attachments';
 
+  // The look comes only from the injector (data-* on the script tag), not from
+  // widget_settings. A skin is a complete design: palette + shape. Add one by
+  // adding a :host([data-skin="<name>"]) block of variables in CSS below.
+  const SKINS = ['classic', 'dark', 'minimal', 'soft'];
+  const DEFAULT_SKIN = 'classic';
+
   // Must be read synchronously, before any await.
   const script = document.currentScript;
   const SUPABASE_URL = script && script.dataset.supabaseUrl;
   const SUPABASE_KEY = script && script.dataset.supabaseKey;
+  const SKIN = (script && SKINS.includes(script.dataset.skin) && script.dataset.skin) || DEFAULT_SKIN;
+  const PRIMARY_COLOR = script && script.dataset.primaryColor;     // optional override of the skin palette
+  const SECONDARY_COLOR = script && script.dataset.secondaryColor; // optional override of the skin palette
+  const CHAT_NAME = script && script.dataset.chatName;             // optional title override (content, not look)
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('[white-chat] Missing data-supabase-url or data-supabase-key on the script tag.');
     return;
   }
 
+  // Every color / radius / shadow / font is a CSS custom property so a skin is
+  // just a block of variable values. The :host defaults are the "classic" skin;
+  // each :host([data-skin="…"]) block overrides the palette and shape.
   const CSS = `
-    :host { all: initial; }
+    :host {
+      all: initial;
+      --wc-primary: #3a63ff;
+      --wc-secondary: #ffffff;
+      --wc-surface: #ffffff;
+      --wc-surface-2: #f6f7f9;
+      --wc-text: #1f2328;
+      --wc-muted: #656d76;
+      --wc-border: #e3e6ea;
+      --wc-op-bubble-bg: #ffffff;
+      --wc-radius: 12px;
+      --wc-bubble-radius: 50%;
+      --wc-msg-radius: 12px;
+      --wc-msg-tail: 4px;
+      --wc-shadow: 0 8px 32px rgba(0,0,0,.25);
+      --wc-bubble-shadow: 0 4px 16px rgba(0,0,0,.25);
+      --wc-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    /* classic: the default light theme (matches :host defaults; here for clarity). */
+    :host([data-skin="dark"]) {
+      --wc-primary: #10b981;
+      --wc-secondary: #ffffff;
+      --wc-surface: #1e293b;
+      --wc-surface-2: #0f172a;
+      --wc-text: #e2e8f0;
+      --wc-muted: #94a3b8;
+      --wc-border: #334155;
+      --wc-op-bubble-bg: #1e293b;
+      --wc-radius: 14px;
+      --wc-shadow: 0 8px 32px rgba(0,0,0,.5);
+      --wc-bubble-shadow: 0 0 0 1px rgba(16,185,129,.4), 0 4px 20px rgba(16,185,129,.45);
+    }
+    :host([data-skin="minimal"]) {
+      --wc-primary: #111111;
+      --wc-secondary: #ffffff;
+      --wc-surface: #ffffff;
+      --wc-surface-2: #ffffff;
+      --wc-text: #111111;
+      --wc-muted: #888888;
+      --wc-border: #e5e5e5;
+      --wc-op-bubble-bg: #ffffff;
+      --wc-radius: 4px;
+      --wc-bubble-radius: 8px;
+      --wc-msg-radius: 6px;
+      --wc-msg-tail: 6px;
+      --wc-shadow: none;
+      --wc-bubble-shadow: none;
+    }
+    :host([data-skin="soft"]) {
+      --wc-primary: #ff6b57;
+      --wc-secondary: #ffffff;
+      --wc-surface: #ffffff;
+      --wc-surface-2: #fff7f2;
+      --wc-text: #4a3f3a;
+      --wc-muted: #a08d84;
+      --wc-border: #f3ddd2;
+      --wc-op-bubble-bg: #ffffff;
+      --wc-radius: 20px;
+      --wc-bubble-radius: 50%;
+      --wc-msg-radius: 18px;
+      --wc-msg-tail: 18px;
+      --wc-shadow: 0 12px 40px rgba(255,107,87,.28);
+      --wc-bubble-shadow: 0 8px 24px rgba(255,107,87,.4);
+      --wc-font: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Quicksand", system-ui, sans-serif;
+    }
+    /* minimal is flat: a hairline border replaces the panel shadow so it stays visible on white. */
+    :host([data-skin="minimal"]) .panel { border: 1px solid var(--wc-border); }
+
     [hidden] { display: none !important; }
     * {
-      box-sizing: border-box; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      box-sizing: border-box; font-family: var(--wc-font);
       letter-spacing: normal; text-transform: none;
     }
     .bubble {
       position: fixed; right: 20px; bottom: 20px; z-index: 2147483000;
-      width: 56px; height: 56px; border-radius: 50%; border: none; cursor: pointer;
+      width: 56px; height: 56px; border-radius: var(--wc-bubble-radius); border: none; cursor: pointer;
       background: var(--wc-primary); color: var(--wc-secondary);
-      box-shadow: 0 4px 16px rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--wc-bubble-shadow); display: flex; align-items: center; justify-content: center;
     }
     .bubble svg { width: 26px; height: 26px; fill: currentColor; }
     .panel {
       position: fixed; right: 20px; bottom: 88px; z-index: 2147483000;
       width: 360px; max-width: calc(100vw - 40px); height: 520px; max-height: calc(100vh - 120px);
-      background: #fff; color: #1f2328; border-radius: 12px; overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,.25); display: flex; flex-direction: column;
+      background: var(--wc-surface); color: var(--wc-text); border-radius: var(--wc-radius); overflow: hidden;
+      box-shadow: var(--wc-shadow); display: flex; flex-direction: column;
       font-size: 14px; line-height: 1.4;
     }
     .header {
@@ -80,13 +160,13 @@
     }
     .title { font-weight: 600; font-size: 16px; margin: 0; }
     .icon-btn { background: none; border: none; color: inherit; cursor: pointer; font-size: 20px; line-height: 1; padding: 0 4px; }
-    .body { flex: 1; overflow-y: auto; padding: 16px; background: #f6f7f9; }
+    .body { flex: 1; overflow-y: auto; padding: 16px; background: var(--wc-surface-2); }
     form.start { display: flex; flex-direction: column; gap: 10px; }
     form.start p { margin: 0 0 4px; }
     label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 500; }
     input, textarea {
-      font-size: 14px; padding: 8px 10px; border: 1px solid #d0d7de; border-radius: 8px;
-      background: #fff; color: #1f2328; width: 100%;
+      font-size: 14px; padding: 8px 10px; border: 1px solid var(--wc-border); border-radius: 8px;
+      background: var(--wc-surface); color: var(--wc-text); width: 100%;
     }
     textarea { resize: vertical; min-height: 70px; }
     .btn {
@@ -98,19 +178,19 @@
     .msg { max-width: 80%; display: flex; flex-direction: column; gap: 2px; }
     .msg.visitor { align-self: flex-end; align-items: flex-end; }
     .msg.operator { align-self: flex-start; }
-    .who { font-size: 11px; color: #656d76; }
-    .text { padding: 8px 12px; border-radius: 12px; white-space: pre-wrap; word-break: break-word; }
-    .visitor .text { background: var(--wc-primary); color: var(--wc-secondary); border-bottom-right-radius: 4px; }
-    .operator .text { background: #fff; border: 1px solid #e3e6ea; border-bottom-left-radius: 4px; }
+    .who { font-size: 11px; color: var(--wc-muted); }
+    .text { padding: 8px 12px; border-radius: var(--wc-msg-radius); white-space: pre-wrap; word-break: break-word; }
+    .visitor .text { background: var(--wc-primary); color: var(--wc-secondary); border-bottom-right-radius: var(--wc-msg-tail); }
+    .operator .text { background: var(--wc-op-bubble-bg); color: var(--wc-text); border: 1px solid var(--wc-border); border-bottom-left-radius: var(--wc-msg-tail); }
     .notice { font-size: 13px; color: #9a6700; background: #fff8c5; border-radius: 8px; padding: 8px 10px; margin: 8px 0 0; }
     .closed { text-align: center; margin-top: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
-    .footer { display: flex; gap: 8px; padding: 10px; border-top: 1px solid #e3e6ea; background: #fff; }
+    .footer { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--wc-border); background: var(--wc-surface); }
     .footer textarea { min-height: 38px; height: 38px; resize: none; }
-    .attach { background: #fff; color: #656d76; border: 1px solid #d0d7de; border-radius: 8px; width: 38px; flex: none; cursor: pointer; font-size: 18px; }
+    .attach { background: var(--wc-surface); color: var(--wc-muted); border: 1px solid var(--wc-border); border-radius: 8px; width: 38px; flex: none; cursor: pointer; font-size: 18px; }
     .attach:disabled { opacity: .6; cursor: default; }
-    .file { display: inline-block; padding: 8px 12px; border-radius: 12px; background: #fff; border: 1px solid #e3e6ea; color: #1f2328; text-decoration: none; word-break: break-all; }
+    .file { display: inline-block; padding: 8px 12px; border-radius: var(--wc-msg-radius); background: var(--wc-op-bubble-bg); border: 1px solid var(--wc-border); color: var(--wc-text); text-decoration: none; word-break: break-all; }
     .file:hover { text-decoration: underline; }
-    .img { display: block; max-width: 220px; max-height: 220px; border-radius: 12px; border: 1px solid #e3e6ea; }
+    .img { display: block; max-width: 220px; max-height: 220px; border-radius: var(--wc-msg-radius); border: 1px solid var(--wc-border); }
   `;
 
   const CHAT_ICON =
@@ -141,11 +221,14 @@
     const host = el('div', { id: 'white-chat-root' });
     host.style.all = 'initial'; // inline beats the host page's inherited styles
     const root = host.attachShadow({ mode: 'open' });
-    host.style.setProperty('--wc-primary', settings.primary_color || '#3a63ff');
-    host.style.setProperty('--wc-secondary', settings.secondary_color || '#ffffff');
+    // The skin drives the palette via CSS variables; only override inline when a
+    // color came explicitly from the injector (data-primary-color/secondary-color).
+    host.dataset.skin = SKIN;
+    if (PRIMARY_COLOR) host.style.setProperty('--wc-primary', PRIMARY_COLOR);
+    if (SECONDARY_COLOR) host.style.setProperty('--wc-secondary', SECONDARY_COLOR);
 
     ui.panel = el('div', { class: 'panel', hidden: '' });
-    ui.title = el('h2', { class: 'title', text: settings.chat_name || TEXT.defaultTitle });
+    ui.title = el('h2', { class: 'title', text: CHAT_NAME || settings.chat_name || TEXT.defaultTitle });
     const header = el('div', { class: 'header' }, [
       ui.title,
       el('button', { class: 'icon-btn', 'aria-label': TEXT.closeButton, text: '×', onclick: togglePanel }),
@@ -450,8 +533,10 @@
       auth: { storageKey: 'wc-auth', persistSession: true, autoRefreshToken: true },
     });
 
+    // Only chat_name is read: it's the header text (content). The look comes from
+    // the skin on the injector, not from widget_settings' colors.
     const { data: settings, error } = await supabase
-      .from('widget_settings').select('chat_name, primary_color, secondary_color').eq('id', 1).maybeSingle();
+      .from('widget_settings').select('chat_name').eq('id', 1).maybeSingle();
     if (error) console.error('[white-chat]', error);
     buildUI(settings || {});
 

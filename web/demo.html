@@ -26,6 +26,11 @@
     s.src = 'widget/chat-widget.js';
     s.dataset.supabaseUrl = window.WHITE_CHAT_CONFIG.SUPABASE_URL;
     s.dataset.supabaseKey = window.WHITE_CHAT_CONFIG.SUPABASE_ANON_KEY;
+    // Look attributes can be tried from the page URL, e.g. demo.html?skin=dark
+    const q = new URLSearchParams(location.search);
+    for (const name of ['skin', 'primary-color', 'secondary-color', 'chat-name']) {
+      if (q.has(name)) s.setAttribute('data-' + name, q.get(name));
+    }
     document.body.append(s);
   </script>
 </body>

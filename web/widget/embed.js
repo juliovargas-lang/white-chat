@@ -6,9 +6,10 @@
  * The host page only needs to allow framing that origin (frame-src) and loading
  * this script (script-src). No connect-src / img-src change is required.
  *
- *   <script src=".../web/widget/embed.js" defer></script>
+ *   <script src=".../web/widget/embed.js" data-skin="dark" defer></script>
  *
  * Optional override: data-frame="https://your-pages-url/widget/frame.html"
+ * Look (forwarded to the iframe): data-skin, data-primary-color, data-secondary-color, data-chat-name
  */
 (function () {
   'use strict';
@@ -17,8 +18,17 @@
 
   var me = document.currentScript
     || (function () { var s = document.getElementsByTagName('script'); return s[s.length - 1]; })();
-  var FRAME_URL = (me && me.getAttribute('data-frame')) || DEFAULT_FRAME;
-  var FRAME_ORIGIN = new URL(FRAME_URL, location.href).origin;
+  var FRAME_SRC = (me && me.getAttribute('data-frame')) || DEFAULT_FRAME;
+
+  // The widget's look lives on the injector; forward the look attributes that are
+  // present to frame.html as query params, which re-applies them to chat-widget.js.
+  var url = new URL(FRAME_SRC, location.href);
+  ['skin', 'primary-color', 'secondary-color', 'chat-name'].forEach(function (name) {
+    var v = me && me.getAttribute('data-' + name);
+    if (v) url.searchParams.set(name, v);
+  });
+  var FRAME_URL = url.href;
+  var FRAME_ORIGIN = url.origin;
 
   if (document.getElementById('white-chat-frame')) return; // avoid double-inject
 

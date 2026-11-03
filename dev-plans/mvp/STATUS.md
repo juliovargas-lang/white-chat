@@ -111,3 +111,10 @@
 - `chat-widget.js` ahora avisa al padre (postMessage `{source:'white-chat',type:'state',open}`) para que `embed.js` redimensione el iframe. Es no-op en el embed directo.
 - `tests/e2e/iframe.mjs` + `web/demo-csp.html`: 7/7 con una CSP host que bloquea Supabase → el chat arranca igual por el iframe, sin violaciones de CSP en el host. El embed directo sigue 15/15.
 - `embed.js` se carga desde jsDelivr (el `script-src` del host ya lo permite) y apunta el iframe a GitHub Pages (`frame-src`). Override posible con `data-frame`.
+
+### Post-v0.1.0 — skins por inyector (`data-skin`)
+- La apariencia (paleta + forma) ahora sale del inyector, por sitio, con un solo atributo `data-skin`. `widget_settings` deja de controlar color; solo se sigue leyendo `chat_name` para el título.
+- 4 skins claramente distintas: `classic` (claro/azul), `dark` (oscuro/esmeralda con glow), `minimal` (plano, cuadrado, monocromo, sin sombra) y `soft` (cálido, muy redondeado, burbujas pill, coral). Fallback a `classic` si falta o es desconocida.
+- Implementación por variables CSS: todo (colores, radios, sombras, fuente) sale de custom properties con defaults en `:host`; cada skin es un bloque `:host([data-skin="…"])`. Añadir una skin = añadir un bloque de variables.
+- Atributos opcionales: `data-primary-color`/`data-secondary-color` (override del acento) y `data-chat-name` (override del título). `embed.js` reenvía estos `data-*` al iframe como query; `frame.html` los vuelve a poner en el `chat-widget.js`.
+- `tests/e2e/skins.mjs`: comprueba que las 4 skins son visualmente distintas, el fallback, el override de color y el reenvío por iframe. `web/demo-skins.html` las muestra las 4 a la vez.
