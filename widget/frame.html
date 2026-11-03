@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chat</title>
+  <style>html, body { margin: 0; background: transparent; }</style>
+  <!-- Served from GitHub Pages (no CSP), so Supabase calls made here are not
+       restricted by the host site's Content Security Policy. -->
+  <script src="../config.js"></script>
+</head>
+<body>
+  <script>
+    (function () {
+      var c = window.WHITE_CHAT_CONFIG || {};
+      var s = document.createElement('script');
+      s.src = 'chat-widget.js';
+      s.setAttribute('data-supabase-url', c.SUPABASE_URL);
+      s.setAttribute('data-supabase-key', c.SUPABASE_ANON_KEY);
+      // Look forwarded by embed.js as query params -> back onto the widget's data-*.
+      var q = new URLSearchParams(location.search);
+      ['skin', 'primary-color', 'secondary-color', 'chat-name'].forEach(function (name) {
+        if (q.has(name)) s.setAttribute('data-' + name, q.get(name));
+      });
+      document.body.appendChild(s);
+    })();
+  </script>
+</body>
+</html>
